@@ -1,0 +1,100 @@
+Farid Imam Nur Syarifuddin
+TI02
+0110222087
+
+
+-- NO.1
+
+-- (A) Trigger tambahStok 
+DELIMITER $$
+CREATE TRIGGER tambahStok
+AFTER INSERT ON suplai_produk
+FOR EACH ROW
+BEGIN
+    UPDATE produk
+    SET stok = stok + NEW.jumlah
+    WHERE id = NEW.produk_id;
+END $$
+
+-- (B) Trigger normalisasiStok 
+DELIMITER $$
+CREATE TRIGGER normalisasiStok
+AFTER DELETE ON suplai_produk
+FOR EACH ROW
+BEGIN
+    UPDATE produk
+    SET stok = stok - OLD.jumlah
+    WHERE id = OLD.produk_id;
+END $$
+
+-- PENJELASAN
+-- A. Jika ada input insert pada table suplai_produk maka trigger tambahStok akan 
+-- merefresh value stok pada table produk dengan menambah nilai jumlah yang baru di tambahkan. 
+-- B. Jika ada input delete pada table suplai_produk makan trigger normalisasiStok akan
+-- merefresh nilai stok pada table produk dengan mengurangi nilai jumlah yang baru di kurangi.
+
+//
+//
+//
+
+-- NO.2
+
+SELECT sup.tgl AS tgl_suplai, 
+pro.nama AS produk_nama, 
+jen.nama AS jenis_nama, 
+sup.jumlah, slr.nama AS suplier_nama
+FROM suplai_produk sup
+INNER JOIN produk pro ON sup.produk_id = pro.id
+INNER JOIN jenis jen ON pro.jenis_id = jen.id
+INNER JOIN suplier slr ON sup.suplier_id = slr.id;
+
+-- PENJELASAN
+-- pada Inner Join kita bisa menyatukan beberapa data dari table yang berbeda,
+-- yang bisa menampilkan data dengan mengambil key yang sesuai seperti di atas
+
++------------+--------------+------------+--------+--------------+
+| tgl_suplai | produk_nama  | jenis_nama | jumlah | suplier_nama |
++------------+--------------+------------+--------+--------------+
+| 2023-06-27 | BAJU KOKO    | PRIA       |     12 | baju         |
+| 2023-06-27 | GAMIS WANITA | WANITA     |     22 | gamis        |
+
+//
+//
+//
+
+-- NO.3
+
+CREATE USER 'roni'@'localhost' IDENTIFIED BY 'roni';
+GRANT ALL PRIVILEGES ON *.* TO 'roni'@'localhost';
+FLUSH PRIVILEGES;
+
+CREATE USER 'desi'@'localhost' IDENTIFIED BY 'desi';
+GRANT ALL PRIVILEGES ON toko_online.* TO 'desi'@'localhost';
+FLUSH PRIVILEGES;
+
+CREATE USER 'zaki'@'localhost' IDENTIFIED BY 'zaki';
+GRANT INSERT, SELECT ON toko_online.jenis TO 'zaki'@'localhost';
+GRANT INSERT, SELECT ON toko_online.produk TO 'zaki'@'localhost';
+FLUSH PRIVILEGES;
+
+-- PENJELASAN
+-- untuk user roni izin akses hak penuh ke seluruh database dan tabel2 yang berada di dalamnya
+-- untuk user desi izin akses hak ke database toko_online dan seluruh tabel yang berada di dalamnya
+-- untuk user zaki izin aksesnya hanya bisa menginput dan select data dari tabel jenis dan produk
+
+//
+//
+//
+
+-- NO.4 
+
+REVOKE INSERT ON toko_online.jenis FROM 'zaki'@'localhost';
+REVOKE INSERT ON toko_online.produk FROM 'zaki'@'localhost';
+FLUSH PRIVILEGES;
+
+REVOKE ALL PRIVILEGES ON toko_online.* FROM 'desi'@'localhost';
+FLUSH PRIVILEGES;
+
+-- PENJELASAN
+-- untuk user zaki di ubah menjadi tidak bisa insert ke tabel jenis dan tabel produk
+-- untuk user desi di ubah menjadi tidak bisa melakukan apapun di database karna semua privilages di tutup
